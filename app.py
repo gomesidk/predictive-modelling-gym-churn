@@ -182,7 +182,7 @@ with tab2:
 
 					csv = df_sorted.to_csv(index=False)
 					st.download_button(
-						label="⬇️ Download Resultados (CSV)",
+						label="Download Resultados (CSV)",
 						data=csv,
 						file_name="predicoes_risco_desistencia.csv",
 						mime="text/csv",
