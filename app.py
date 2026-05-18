@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-import pickle
+import joblib
 import os
 from pathlib import Path
 
@@ -20,9 +20,23 @@ def load_model():
 		return None
 	try:
 		with open(MODEL_PATH, "rb") as f:
-			return pickle.load(f)
+			return joblib.load(f)
 	except Exception as e:
 		st.error(f"Erro ao carregar o modelo: {e}")
+		return None
+	
+@st.cache_resource
+def load_scaler():
+	"""Carrega o scaler pkl uma vez e cachea."""
+	scaler_path = Path(__file__).parent / "scaler.pkl"
+	if not scaler_path.exists():
+		st.error(f"Scaler não encontrado: {scaler_path}")
+		return None
+	try:
+		with open(scaler_path, "rb") as f:
+			return joblib.load(f)
+	except Exception as e:
+		st.error(f"Erro ao carregar o scaler: {e}")
 		return None
 
 
@@ -78,11 +92,12 @@ with tab2:
 		st.warning("Primeiro, faz upload de um dataset na aba anterior.")
 	else:
 		model = load_model()
+		scaler = load_scaler()
 
-		if model is None:
-			st.error("Não foi possível carregar o modelo.")
+		if model is None or scaler is None:
+			st.error("Não foi possível carregar o modelo e/ou scaler.")
 		else:
-			st.success("Modelo carregado com sucesso!")
+			st.success("Modelo e scaler carregados com sucesso!")
 
 			st.subheader("Configuração")
 			threshold = st.slider(
@@ -114,11 +129,19 @@ with tab2:
 				else:
 					df_model = df[expected_features]
 
+					df_model_scaled = scaler.transform(df_model)
+					if not isinstance(df_model_scaled, pd.DataFrame):
+						df_model_scaled = pd.DataFrame(
+							df_model_scaled,
+							columns=expected_features,
+							index=df_model.index,
+						)
+
 					try:
-						predictions = model.predict_proba(df_model)
+						predictions = model.predict_proba(df_model_scaled)
 						risk_scores = predictions[:, 1] * 100
 					except AttributeError:
-						predictions = model.predict(df_model)
+						predictions = model.predict(df_model_scaled)
 						risk_scores = predictions * 100
 
 					df["Risco de Desistência (%)"] = risk_scores.round(2)
