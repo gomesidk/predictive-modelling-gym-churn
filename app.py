@@ -960,7 +960,7 @@ with tab_ds:
         all_scores   = get_all_scores(model, scaler)
         at_risk      = int((all_scores >= threshold).sum()) if all_scores is not None else None
         at_risk_pct  = at_risk / total * 100 if at_risk is not None else None
-        AVG_MONTHLY_REVENUE = 40
+        AVG_MONTHLY_REVENUE = 30
         revenue_at_risk = at_risk * AVG_MONTHLY_REVENUE if at_risk is not None else None
 
         # ── KPI row ──
@@ -1028,7 +1028,7 @@ with tab_ds:
             ax2.pie(
                 [retained, churned],
                 labels=["Retained", "Churned"],
-                colors=["#16a34a", "#dc2626"],
+                colors=["#2563eb", "#ea580c"],
                 autopct="%1.1f%%",
                 startangle=90,
                 wedgeprops=dict(width=0.55),
